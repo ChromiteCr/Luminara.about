@@ -25,8 +25,11 @@ a { color: var(--text); }
 :focus-visible { outline: 2px solid var(--muted); outline-offset: 3px; }
 .wrap { max-width: 660px; margin: 0 auto; padding: 0 clamp(20px, 5vw, 40px); }
 .masthead { display: flex; align-items: center; gap: 12px; padding-block: 22px; }
-.masthead img { width: 26px; height: 26px; border-radius: 6px; display: block; }
-.masthead a { color: var(--text); font-weight: 600; text-decoration: none; }
+.masthead img { width: 34px; height: 34px; border-radius: 8px; display: block; }
+.masthead a {
+  color: var(--text); font-weight: 600; text-decoration: none;
+  font-size: 20px; letter-spacing: -0.02em;
+}
 hr { height: 1px; background: var(--hairline); border: 0; margin: 0; }
 .eyebrow {
   font-family: var(--mono); font-size: 10px; font-weight: 500;
@@ -55,7 +58,7 @@ main { padding-block: clamp(40px, 7vw, 72px) 60px; }
 
 <div class="wrap">
   <header class="masthead">
-    <img src="assets/icon-256.png" alt="" width="26" height="26">
+    <img src="assets/icon-256.png" alt="" width="34" height="34">
     <a href="index.html">Luminara</a>
   </header>
 </div>
