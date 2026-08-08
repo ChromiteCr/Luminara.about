@@ -1,0 +1,676 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Luminara — grade a photo, export a LUT</title>
+<meta name="description" content="A Mac app that turns one photograph into a 3D LUT you can take anywhere. Move the controls yourself, or talk to Lucy.">
+<meta name="color-scheme" content="dark">
+
+<link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+<link rel="icon" href="assets/favicon-32.png" sizes="32x32">
+<link rel="apple-touch-icon" href="assets/apple-touch-icon.png">
+
+<meta property="og:title" content="Luminara">
+<meta property="og:description" content="Grade a photo, export a LUT that works everywhere.">
+<meta property="og:image" content="assets/icon-256.png">
+<meta property="og:type" content="website">
+
+<style>
+/* ---------------------------------------------------------------------------
+   The palette is Achromatic, copied by value from the app's own tokens.
+
+   Every grey has r == g == b, and there is no accent colour anywhere on this
+   page. That is the whole idea rather than a restriction: this is a colour tool
+   whose interface has no colour in it, so the only colour a visitor sees is the
+   photograph in the pad, changing as they move across it.
+--------------------------------------------------------------------------- */
+:root {
+  --void:     #101010;
+  --panel:    #1a1a1a;
+  --raised:   #242424;
+  --hairline: #313131;
+  --bright:   #454545;
+  --dim:      #8a8a8a;
+  --muted:    #b4b4b4;
+  --text:     #ededed;
+
+  /* The audience for a Mac app is on Apple hardware, so the page can be set in
+     the same faces as the product instead of approximating them with a
+     download. SF Mono carries the labels and every number, exactly as the app's
+     eyebrows and readouts do. */
+  --ui: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", Arial, sans-serif;
+  --mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
+
+  --gutter: clamp(20px, 5vw, 64px);
+  --measure: 1080px;
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+
+html { -webkit-text-size-adjust: 100%; }
+
+body {
+  margin: 0;
+  background: var(--void);
+  color: var(--muted);
+  font-family: var(--ui);
+  font-size: 15px;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+}
+
+a { color: var(--text); text-decoration: none; }
+a:hover { text-decoration: underline; text-underline-offset: 3px; }
+
+:focus-visible {
+  outline: 2px solid var(--muted);
+  outline-offset: 3px;
+  border-radius: 3px;
+}
+
+.wrap {
+  max-width: var(--measure);
+  margin: 0 auto;
+  padding-inline: var(--gutter);
+}
+
+/* Eyebrow: the app's own label style, 10px mono, wide tracking, upper case. */
+.eyebrow {
+  font-family: var(--mono);
+  font-size: 10px;
+  font-weight: 500;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--dim);
+  margin: 0 0 14px;
+}
+
+.rule { height: 1px; background: var(--hairline); border: 0; margin: 0; }
+
+/* --- Header ------------------------------------------------------------- */
+
+.masthead {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding-block: 22px;
+}
+.masthead img { width: 30px; height: 30px; display: block; border-radius: 7px; }
+.masthead b { color: var(--text); font-weight: 600; font-size: 15px; letter-spacing: -0.01em; }
+.masthead nav {
+  margin-left: auto;
+  display: flex;
+  gap: 20px;
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--dim);
+}
+.masthead nav a { color: var(--dim); }
+.masthead nav a:hover { color: var(--text); }
+
+/* --- Hero --------------------------------------------------------------- */
+
+.hero { padding-block: clamp(48px, 9vw, 104px) 0; }
+
+.hero h1 {
+  font-family: var(--ui);
+  font-size: clamp(38px, 6.4vw, 74px);
+  line-height: 1.02;
+  letter-spacing: -0.035em;
+  font-weight: 600;
+  color: var(--text);
+  margin: 0;
+  max-width: 15ch;
+}
+.hero h1 em {
+  font-style: normal;
+  color: var(--dim);
+}
+
+.hero p.lede {
+  margin: 22px 0 0;
+  font-size: clamp(16px, 1.7vw, 19px);
+  line-height: 1.55;
+  max-width: 46ch;
+}
+
+.cta-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px 18px;
+  margin-top: 30px;
+}
+
+.button {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 18px;
+  border: 1px solid var(--bright);
+  border-radius: 8px;
+  background: var(--raised);
+  color: var(--text);
+  font-size: 13px;
+  font-weight: 500;
+}
+.button:hover { background: #323232; text-decoration: none; }
+
+.cta-note {
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--dim);
+}
+
+/* --- The signature: a live grading pad ---------------------------------- */
+
+.pad-block {
+  margin-top: clamp(44px, 7vw, 76px);
+  padding-bottom: clamp(44px, 7vw, 76px);
+  display: grid;
+  gap: clamp(20px, 3vw, 34px);
+  grid-template-columns: minmax(0, 1fr) minmax(0, 300px);
+  align-items: start;
+}
+@media (max-width: 820px) {
+  .pad-block { grid-template-columns: minmax(0, 1fr); }
+}
+
+.stage {
+  position: relative;
+  aspect-ratio: 3 / 2;
+  border: 1px solid var(--hairline);
+  border-radius: 14px;
+  overflow: hidden;
+  background: var(--panel);
+}
+
+/* The subject. Swap in a real photograph by dropping assets/sample.jpg beside
+   this file: the <img> is on top and simply covers the drawn field when it
+   loads. Until then this is plainly a rendering rather than a stock photo
+   pretending to be somebody's work. */
+.stage .field {
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(120% 90% at 72% 22%, #f4d9a8 0%, #e0a05c 22%, #a85f45 46%, transparent 72%),
+    linear-gradient(#2d4a63 0%, #4a6478 34%, #7d7060 58%, #2a2622 100%);
+}
+.stage img.sample {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+.stage img.sample:not([src]), .stage img.sample[src=""] { display: none; }
+
+.stage .graded {
+  position: absolute;
+  inset: 0;
+  transition: filter 90ms linear;
+  will-change: filter;
+}
+
+/* The seam. The left slice always shows the ungraded picture, which is the
+   app's own ⌘\ compare, and the reason a visitor can tell the pad is doing
+   something rather than the page having always looked like that. */
+.stage .before {
+  position: absolute;
+  inset: 0;
+  clip-path: inset(0 calc(100% - var(--seam, 26%)) 0 0);
+}
+.stage .seam-line {
+  position: absolute;
+  top: 0; bottom: 0;
+  left: var(--seam, 26%);
+  width: 1px;
+  background: rgba(255,255,255,0.45);
+}
+.stage .seam-label {
+  position: absolute;
+  left: 12px;
+  bottom: 10px;
+  font-family: var(--mono);
+  font-size: 9px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: rgba(255,255,255,0.7);
+  text-shadow: 0 1px 3px rgba(0,0,0,0.7);
+}
+
+.pad-side { display: flex; flex-direction: column; gap: 14px; }
+
+.pad {
+  display: grid;
+  grid-template-columns: repeat(11, 1fr);
+  gap: 2px;
+  padding: 10px;
+  background: var(--panel);
+  border: 1px solid var(--hairline);
+  border-radius: 14px;
+  touch-action: none;
+}
+
+.pad button {
+  all: unset;
+  aspect-ratio: 1;
+  border-radius: 2px;
+  cursor: crosshair;
+  box-shadow: inset 0 0 0 1px rgba(0,0,0,0.25);
+}
+.pad button[aria-pressed="true"] {
+  box-shadow: inset 0 0 0 1px rgba(0,0,0,0.25), 0 0 0 2px var(--text);
+  border-radius: 3px;
+}
+
+.readout {
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--muted);
+  background: var(--raised);
+  border: 1px solid var(--hairline);
+  border-radius: 8px;
+  padding: 10px 12px;
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+}
+.readout span:last-child { color: var(--dim); }
+
+.pad-hint {
+  font-family: var(--mono);
+  font-size: 10px;
+  color: var(--dim);
+  line-height: 1.5;
+  margin: 0;
+}
+
+/* --- Spec strip ---------------------------------------------------------- */
+
+.specs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 26px;
+  padding-block: 18px;
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--dim);
+}
+.specs b { color: var(--muted); font-weight: 500; }
+
+/* --- Feature sections ---------------------------------------------------- */
+
+.feature { padding-block: clamp(46px, 7vw, 82px); }
+
+.feature h2 {
+  font-size: clamp(24px, 3.2vw, 34px);
+  line-height: 1.15;
+  letter-spacing: -0.025em;
+  font-weight: 600;
+  color: var(--text);
+  margin: 0 0 16px;
+  max-width: 22ch;
+}
+.feature p { margin: 0 0 14px; max-width: 62ch; }
+.feature p:last-child { margin-bottom: 0; }
+
+.split {
+  display: grid;
+  gap: clamp(22px, 4vw, 48px);
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  align-items: start;
+}
+@media (max-width: 780px) { .split { grid-template-columns: minmax(0, 1fr); } }
+
+/* A turn from the app, drawn the way the app draws one: what she said, then
+   the values that actually moved. The card is the honest part of the product,
+   so it is the part worth showing rather than a screenshot of a chat bubble. */
+.turn {
+  background: var(--panel);
+  border: 1px solid var(--hairline);
+  border-radius: 10px;
+  padding: 16px 18px;
+  font-size: 13px;
+}
+.turn .said { color: var(--text); margin: 0 0 4px; }
+.turn .asked {
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--dim);
+  margin: 0 0 14px;
+}
+.turn table { width: 100%; border-collapse: collapse; font-family: var(--mono); font-size: 11px; }
+.turn td { padding: 4px 0; color: var(--muted); }
+.turn td:last-child { text-align: right; color: var(--dim); white-space: nowrap; }
+.turn .undo {
+  margin: 14px 0 0;
+  padding-top: 12px;
+  border-top: 1px solid var(--hairline);
+  font-family: var(--mono);
+  font-size: 10px;
+  color: var(--dim);
+}
+
+.stack { list-style: none; margin: 0; padding: 0; font-family: var(--mono); font-size: 11px; }
+.stack li {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 9px 0;
+  border-bottom: 1px solid var(--hairline);
+  color: var(--muted);
+}
+.stack li:last-child { border-bottom: 0; }
+.stack li span { color: var(--dim); }
+
+/* --- Footer -------------------------------------------------------------- */
+
+.foot {
+  padding-block: 34px 46px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px 26px;
+  align-items: center;
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--dim);
+}
+.foot a { color: var(--dim); }
+.foot a:hover { color: var(--text); }
+.foot .spacer { margin-left: auto; }
+
+@media (prefers-reduced-motion: reduce) {
+  * { transition-duration: 0ms !important; animation-duration: 0ms !important; }
+}
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <header class="masthead">
+    <img src="assets/icon-256.png" alt="" width="30" height="30">
+    <b>Luminara</b>
+    <nav>
+      <a href="#talk">Lucy</a>
+      <a href="#regions">Regions</a>
+      <a href="#batch">Batch</a>
+    </nav>
+  </header>
+</div>
+<hr class="rule">
+
+<main>
+  <div class="wrap">
+    <section class="hero">
+      <p class="eyebrow">Colour grading for macOS</p>
+      <h1>Grade one photograph. <em>Take the LUT anywhere.</em></h1>
+      <p class="lede">
+        Work on a picture until it looks right, then export a 3D LUT. The
+        <code>.cube</code> drops into Resolve, Premiere, Final Cut, OBS or a game
+        engine. What you see here is what the table does.
+      </p>
+      <div class="cta-row">
+        <!-- Swap this href for the Mac App Store link once the app is live. -->
+        <a class="button" href="#talk">See how it works</a>
+        <span class="cta-note">Coming to the Mac App Store</span>
+      </div>
+    </section>
+
+    <section class="pad-block" aria-labelledby="pad-heading">
+      <div>
+        <h2 id="pad-heading" class="eyebrow">Point at the one you want</h2>
+        <div class="stage">
+          <div class="graded" id="graded">
+            <div class="field"></div>
+            <img class="sample" id="sample" alt="" data-src="assets/sample.jpg">
+          </div>
+          <div class="before">
+            <div class="field"></div>
+            <img class="sample" alt="" data-src="assets/sample.jpg">
+          </div>
+          <div class="seam-line"></div>
+          <span class="seam-label">Before</span>
+        </div>
+      </div>
+
+      <div class="pad-side">
+        <div class="pad" id="pad" role="group" aria-label="Grading pad: brightness down the grid, saturation across it"></div>
+        <div class="readout">
+          <span id="readout-tone">Tone +0.00</span>
+          <span id="readout-sat">Saturation +0.00</span>
+        </div>
+        <p class="pad-hint">
+          Every cell is your own photograph, already graded. Tone down the grid,
+          saturation across it. Arrow keys work too.
+        </p>
+      </div>
+    </section>
+  </div>
+
+  <hr class="rule">
+  <div class="wrap">
+    <p class="specs">
+      <b>.cube</b> 33³ and 65³ &nbsp;·&nbsp;
+      <b>RAW</b> ProRAW, Sony, Canon, Nikon, Fujifilm &nbsp;·&nbsp;
+      <b>Log</b> S-Log2, S-Log3, V-Log &nbsp;·&nbsp;
+      <b>Space</b> sRGB or linear &nbsp;·&nbsp;
+      <b>macOS</b> 14 and later
+    </p>
+  </div>
+  <hr class="rule">
+
+  <div class="wrap">
+    <section class="feature split" id="talk">
+      <div>
+        <p class="eyebrow">Or say it out loud</p>
+        <h2>Lucy moves the same controls you do.</h2>
+        <p>
+          Ask for what you want in plain words. She reaches the panels you
+          reach, and every change lands as an ordinary edit: it shows up on the
+          controls, a card lists exactly which values moved, and one ⌘Z takes it
+          back.
+        </p>
+        <p>
+          She can do nothing you cannot see. That is the point of the card.
+        </p>
+      </div>
+      <div class="turn">
+        <p class="asked">You said</p>
+        <p class="said">Warmer, but leave her skin alone.</p>
+        <p class="asked" style="margin-top:14px">Lucy</p>
+        <p class="said">Warmed the frame and pulled the orange band back so the skin stays put.</p>
+        <table>
+          <tr><td>Temperature</td><td>+0.00 → +0.18</td></tr>
+          <tr><td>Gain · B</td><td>+0.00 → −0.06</td></tr>
+          <tr><td>Orange · Saturation</td><td>+0.00 → −0.09</td></tr>
+        </table>
+        <p class="undo">One ⌘Z takes back the whole turn.</p>
+      </div>
+    </section>
+  </div>
+
+  <hr class="rule">
+
+  <div class="wrap">
+    <section class="feature split" id="regions">
+      <div>
+        <p class="eyebrow">Local adjustments</p>
+        <h2>A region is a stack you can argue with.</h2>
+        <p>
+          Compose it out of parts: a brush, a gradient, a colour qualifier, the
+          subject the photo is of. Add, subtract and intersect them.
+        </p>
+        <p>
+          One click builds a sky, and it is not a sky detector. It is three
+          ordinary parts, all still on screen and all still editable.
+        </p>
+      </div>
+      <ul class="stack">
+        <li>Gradient from the top <span>add</span></li>
+        <li>Blues &amp; cyans <span>intersect</span></li>
+        <li>Subject <span>subtract</span></li>
+        <li>Blur 12 · Opacity 100% <span>refine</span></li>
+      </ul>
+    </section>
+  </div>
+
+  <hr class="rule">
+
+  <div class="wrap">
+    <section class="feature split" id="batch">
+      <div>
+        <p class="eyebrow">A folder at a time</p>
+        <h2>Every region is solved again on each photo.</h2>
+        <p>
+          A region built from a rule rather than a shape gets re-solved on every
+          picture it meets, so a sky is that photo's sky. Eight frames are
+          previewed before the run starts.
+        </p>
+        <p>
+          The report says, per photo, which rules found something and which did
+          not. A rule that found nothing is named rather than skipped quietly.
+        </p>
+      </div>
+      <ul class="stack">
+        <li>IMG_2041.dng <span>Sky, Subject applied</span></li>
+        <li>IMG_2042.dng <span>Sky, Subject applied</span></li>
+        <li>IMG_2043.dng <span>“Sky” found nothing</span></li>
+        <li>IMG_2044.dng <span>Sky, Subject applied</span></li>
+      </ul>
+    </section>
+  </div>
+
+  <hr class="rule">
+
+  <div class="wrap">
+    <section class="feature">
+      <p class="eyebrow">Your key or ours</p>
+      <h2>Lucy runs on our servers, or on yours.</h2>
+      <p>
+        There is a free weekly allowance, and a subscription raises it. Or point
+        Luminara at your own endpoint and use your own API key, which stays in
+        your Keychain and never reaches us.
+      </p>
+    </section>
+  </div>
+</main>
+
+<hr class="rule">
+<div class="wrap">
+  <footer class="foot">
+    <span>Luminara</span>
+    <a href="privacy.html">Privacy</a>
+    <a href="mailto:diankungao@outlook.com">Support</a>
+    <span class="spacer">Made for macOS</span>
+  </footer>
+</div>
+
+<script>
+(function () {
+  "use strict";
+
+  var STEPS = 11;               // The app's pad is 11 x 11.
+  var pad = document.getElementById("pad");
+  var graded = document.getElementById("graded");
+  var toneOut = document.getElementById("readout-tone");
+  var satOut = document.getElementById("readout-sat");
+  if (!pad || !graded) return;
+
+  // A real photograph if one is beside this file, the drawn field otherwise.
+  // Done in script so a missing sample.jpg costs nothing but a 404 nobody sees.
+  Array.prototype.forEach.call(document.querySelectorAll("img.sample"), function (img) {
+    var probe = new Image();
+    probe.onload = function () { img.src = img.dataset.src; };
+    probe.src = img.dataset.src;
+  });
+
+  function axis(i) { return (i / (STEPS - 1)) * 2 - 1; }   // 0…10 -> -1…+1
+  function signed(v) { return (v < 0 ? "−" : "+") + Math.abs(v).toFixed(2); }
+
+  // Tone and saturation as CSS. Approximate rather than the app's arithmetic,
+  // and said so in the copy: this is a demonstration of the gesture, not a
+  // second implementation of the grade that could disagree with the first.
+  function filterFor(tone, sat) {
+    return "brightness(" + (1 + tone * 0.42).toFixed(3) + ") " +
+           "saturate(" + Math.max(0, 1 + sat * 0.9).toFixed(3) + ") " +
+           "contrast(" + (1 - Math.abs(tone) * 0.05).toFixed(3) + ")";
+  }
+
+  var cells = [];
+  var active = null;
+
+  function apply(cell) {
+    if (active) active.setAttribute("aria-pressed", "false");
+    active = cell;
+    cell.setAttribute("aria-pressed", "true");
+    graded.style.filter = filterFor(cell._tone, cell._sat);
+    toneOut.textContent = "Tone " + signed(cell._tone);
+    satOut.textContent = "Saturation " + signed(cell._sat);
+  }
+
+  for (var row = 0; row < STEPS; row++) {
+    for (var col = 0; col < STEPS; col++) {
+      var tone = -axis(row);          // bright at the top, like the app
+      var sat = axis(col);
+      var cell = document.createElement("button");
+      cell.type = "button";
+      cell._tone = tone;
+      cell._sat = sat;
+      cell._row = row;
+      cell._col = col;
+      cell.tabIndex = (row === 5 && col === 5) ? 0 : -1;
+      cell.setAttribute("aria-pressed", "false");
+      cell.setAttribute("aria-label", "Tone " + signed(tone) + ", saturation " + signed(sat));
+      // Each swatch is the picture at that setting, which is what makes the pad
+      // read as the photograph rather than as a colour ramp.
+      cell.style.background =
+        "linear-gradient(135deg, #c98f52, #7d7060 55%, #35506b)";
+      cell.style.filter = filterFor(tone, sat);
+      pad.appendChild(cell);
+      cells.push(cell);
+    }
+  }
+
+  function at(row, col) {
+    return cells[row * STEPS + col];
+  }
+
+  pad.addEventListener("pointerdown", function (e) {
+    if (e.target.tagName === "BUTTON") { apply(e.target); e.target.focus(); }
+  });
+  pad.addEventListener("pointerover", function (e) {
+    if (e.buttons && e.target.tagName === "BUTTON") apply(e.target);
+  });
+  pad.addEventListener("mouseover", function (e) {
+    if (e.target.tagName === "BUTTON") apply(e.target);
+  });
+
+  pad.addEventListener("keydown", function (e) {
+    var cell = e.target;
+    if (cell.tagName !== "BUTTON") return;
+    var row = cell._row, col = cell._col;
+    if (e.key === "ArrowUp") row--;
+    else if (e.key === "ArrowDown") row++;
+    else if (e.key === "ArrowLeft") col--;
+    else if (e.key === "ArrowRight") col++;
+    else return;
+    e.preventDefault();
+    row = Math.max(0, Math.min(STEPS - 1, row));
+    col = Math.max(0, Math.min(STEPS - 1, col));
+    var next = at(row, col);
+    cells.forEach(function (c) { c.tabIndex = -1; });
+    next.tabIndex = 0;
+    next.focus();
+    apply(next);
+  });
+
+  // Start a little warm and a little lifted, so the seam has something to show
+  // before anybody touches anything.
+  apply(at(4, 6));
+})();
+</script>
+</body>
+</html>
