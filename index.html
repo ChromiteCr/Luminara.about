@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Luminara — grade a photo, export a LUT</title>
+<title>Luminara · grade a photo, export a LUT</title>
 <meta name="description" content="A Mac app that turns one photograph into a 3D LUT you can take anywhere. Move the controls yourself, or talk to Lucy.">
 <meta name="color-scheme" content="dark">
 
@@ -343,6 +343,35 @@ a:hover { text-decoration: underline; text-underline-offset: 3px; }
 }
 @media (max-width: 780px) { .split { grid-template-columns: minmax(0, 1fr); } }
 
+/* A screenshot. The border and radius match the window's own, so the picture
+   ends where the app ends rather than floating on the page. */
+.shot {
+  display: block;
+  width: 100%;
+  height: auto;
+  border: 1px solid var(--hairline);
+  border-radius: 10px;
+}
+
+/* The one wide product shot, under the hero. The pad above it is a live
+   demonstration of an idea; this is the thing you actually download. */
+.product {
+  padding-bottom: clamp(44px, 7vw, 76px);
+}
+.product img {
+  display: block;
+  width: 100%;
+  height: auto;
+  border: 1px solid var(--hairline);
+  border-radius: 14px;
+}
+.product figcaption {
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--dim);
+  padding-top: 12px;
+}
+
 /* A turn from the app, drawn the way the app draws one: what she said, then
    the values that actually moved. The card is the honest part of the product,
    so it is the part worth showing rather than a screenshot of a chat bubble. */
@@ -416,6 +445,7 @@ a:hover { text-decoration: underline; text-underline-offset: 3px; }
       <a href="#regions">Regions</a>
       <a href="#styles">Styles</a>
       <a href="#batch">Batch</a>
+      <a href="support.html">Support</a>
     </nav>
   </header>
 </div>
@@ -469,6 +499,14 @@ a:hover { text-decoration: underline; text-underline-offset: 3px; }
     </section>
   </div>
 
+  <div class="wrap">
+    <figure class="product">
+      <img src="assets/shot-pad.jpg" width="1600" height="980" loading="lazy"
+           alt="Luminara in simple mode: a photograph on the left, the grading pad and its tone, saturation and temperature readout on the right.">
+      <figcaption>Simple mode. The photograph, the pad, and three numbers.</figcaption>
+    </figure>
+  </div>
+
   <hr class="rule">
   <div class="wrap">
     <p class="specs">
@@ -496,18 +534,8 @@ a:hover { text-decoration: underline; text-underline-offset: 3px; }
           She can do nothing you cannot see. That is the point of the card.
         </p>
       </div>
-      <div class="turn">
-        <p class="asked">You said</p>
-        <p class="said">Warmer, but leave her skin alone.</p>
-        <p class="asked" style="margin-top:14px">Lucy</p>
-        <p class="said">Warmed the frame and pulled the orange band back so the skin stays put.</p>
-        <table>
-          <tr><td>Temperature</td><td>+0.00 → +0.18</td></tr>
-          <tr><td>Gain · B</td><td>+0.00 → −0.06</td></tr>
-          <tr><td>Orange · Saturation</td><td>+0.00 → −0.09</td></tr>
-        </table>
-        <p class="undo">One ⌘Z takes back the whole turn.</p>
-      </div>
+      <img class="shot" src="assets/shot-lucy.jpg" width="1600" height="980" loading="lazy"
+           alt="The Lucy console beside the grading panels, showing two turns and the exact values each one moved.">
     </section>
   </div>
 
@@ -527,12 +555,8 @@ a:hover { text-decoration: underline; text-underline-offset: 3px; }
           ordinary parts, all still on screen and all still editable.
         </p>
       </div>
-      <ul class="stack">
-        <li>Gradient from the top <span>add</span></li>
-        <li>Blues &amp; cyans <span>intersect</span></li>
-        <li>Subject <span>subtract</span></li>
-        <li>Blur 12 · Opacity 100% <span>refine</span></li>
-      </ul>
+      <img class="shot" src="assets/shot-regions.jpg" width="1600" height="980" loading="lazy"
+           alt="A sky region selected, its mask stack listed as a gradient, a colour key and the subject, with the selection highlighted on the photograph.">
     </section>
   </div>
 
@@ -553,12 +577,8 @@ a:hover { text-decoration: underline; text-underline-offset: 3px; }
           not. A rule that found nothing is named rather than skipped quietly.
         </p>
       </div>
-      <ul class="stack">
-        <li>IMG_2041.dng <span>Sky, Subject applied</span></li>
-        <li>IMG_2042.dng <span>Sky, Subject applied</span></li>
-        <li>IMG_2043.dng <span>“Sky” found nothing</span></li>
-        <li>IMG_2044.dng <span>Sky, Subject applied</span></li>
-      </ul>
+      <img class="shot" src="assets/shot-batch.jpg" width="1600" height="980" loading="lazy"
+           alt="The apply-to-photos sheet: photos, destination, format, and a preflight strip of sampled frames.">
     </section>
   </div>
 
@@ -619,7 +639,7 @@ a:hover { text-decoration: underline; text-underline-offset: 3px; }
   <footer class="foot">
     <span>Luminara</span>
     <a href="privacy.html">Privacy</a>
-    <a href="mailto:luminara.feedback@hotmail.com">Support</a>
+    <a href="support.html">Support</a>
     <span class="spacer">Made for macOS</span>
   </footer>
 </div>
