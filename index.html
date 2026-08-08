@@ -317,6 +317,19 @@ a:hover { text-decoration: underline; text-underline-offset: 3px; }
 .feature p { margin: 0 0 14px; max-width: 62ch; }
 .feature p:last-child { margin-bottom: 0; }
 
+/* The thesis. One section is allowed to speak louder than the others, and it is
+   the one that says what the whole app is for. Everything else on the page
+   describes a capability; this describes the point of having them. */
+.thesis h2 {
+  font-size: clamp(28px, 4.4vw, 46px);
+  line-height: 1.08;
+  letter-spacing: -0.03em;
+  max-width: 16ch;
+  margin-bottom: 20px;
+}
+.thesis h2 em { font-style: normal; color: var(--dim); }
+.thesis p { font-size: clamp(15px, 1.5vw, 17px); max-width: 54ch; }
+
 .split {
   display: grid;
   gap: clamp(22px, 4vw, 48px);
@@ -396,6 +409,7 @@ a:hover { text-decoration: underline; text-underline-offset: 3px; }
     <nav>
       <a href="#talk">Lucy</a>
       <a href="#regions">Regions</a>
+      <a href="#styles">Styles</a>
       <a href="#batch">Batch</a>
     </nav>
   </header>
@@ -406,9 +420,9 @@ a:hover { text-decoration: underline; text-underline-offset: 3px; }
   <div class="wrap">
     <section class="hero">
       <p class="eyebrow">Colour grading for macOS</p>
-      <h1>Grade one photograph. <em>Take the LUT anywhere.</em></h1>
+      <h1>Create your own style. <em>Then take it anywhere.</em></h1>
       <p class="lede">
-        Work on a picture until it looks right, then export a 3D LUT. The
+        Grade one photograph until it looks right, and export a 3D LUT. The
         <code>.cube</code> drops into Resolve, Premiere, Final Cut, OBS or a game
         engine. What you see here is what the table does.
       </p>
@@ -539,6 +553,32 @@ a:hover { text-decoration: underline; text-underline-offset: 3px; }
         <li>IMG_2042.dng <span>Sky, Subject applied</span></li>
         <li>IMG_2043.dng <span>“Sky” found nothing</span></li>
         <li>IMG_2044.dng <span>Sky, Subject applied</span></li>
+      </ul>
+    </section>
+  </div>
+
+  <hr class="rule">
+
+  <div class="wrap">
+    <section class="feature split thesis" id="styles">
+      <div>
+        <p class="eyebrow">Your own styles</p>
+        <h2>A look you make is <em>yours.</em></h2>
+        <p>
+          Save the ones that work. Every project reaches them by name, whether
+          you are moving the controls or asking Lucy for one out loud.
+        </p>
+        <p>
+          Bring in somebody else's LUT and you keep grading on top of it, at
+          whatever strength you choose. It is a floor to build on. Where you stop
+          is up to you.
+        </p>
+      </div>
+      <ul class="stack">
+        <li>Winter portrait <span>use</span></li>
+        <li>Warm doc <span>use</span></li>
+        <li>Bleach bypass <span>use</span></li>
+        <li>Sunday film <span>use</span></li>
       </ul>
     </section>
   </div>
