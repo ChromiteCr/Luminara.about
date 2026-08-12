@@ -443,7 +443,6 @@ a:hover { text-decoration: underline; text-underline-offset: 3px; }
     <nav>
       <a href="#talk">Lucy</a>
       <a href="#regions">Regions</a>
-      <a href="#styles">Styles</a>
       <a href="#batch">Batch</a>
       <a href="support.html">Support</a>
     </nav>
@@ -584,31 +583,17 @@ a:hover { text-decoration: underline; text-underline-offset: 3px; }
 
   <hr class="rule">
 
-  <div class="wrap">
-    <section class="feature split thesis" id="styles">
-      <div>
-        <p class="eyebrow">Your own styles</p>
-        <h2>A look you make is <em>yours.</em></h2>
-        <p>
-          Save the ones that work. Every project reaches them by name, whether
-          you are moving the controls or asking Lucy for one out loud.
-        </p>
-        <p>
-          Bring in somebody else's LUT and you keep grading on top of it, at
-          whatever strength you choose. It is a floor to build on. Where you stop
-          is up to you.
-        </p>
-      </div>
-      <ul class="stack">
-        <li>Winter portrait <span>use</span></li>
-        <li>Warm doc <span>use</span></li>
-        <li>Bleach bypass <span>use</span></li>
-        <li>Sunday film <span>use</span></li>
-      </ul>
-    </section>
-  </div>
+  <!--
+    The "Your own styles" section lived here and is out while `Feature.styles` is off
+    in the app. A page describing a feature the build does not ship is a metadata
+    problem before it is a marketing one, and the App Store checks the two against
+    each other.
 
-  <hr class="rule">
+    Restore it, with the `#styles` link in the nav above, when the flag goes back on.
+    Its second half is true today (grading on top of an imported LUT at any strength)
+    and could be brought back sooner as its own section, but rewriting marketing copy
+    to sit exactly on the line of what ships is how the next wrong claim gets written.
+  -->
 
   <div class="wrap">
     <section class="feature split">

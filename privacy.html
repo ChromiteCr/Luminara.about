@@ -69,7 +69,7 @@ main { padding-block: clamp(40px, 7vw, 72px) 60px; }
 <main>
   <p class="eyebrow">Privacy</p>
   <h1>What leaves your Mac, and when.</h1>
-  <p class="updated">Last updated 8 August 2026</p>
+  <p class="updated">Last updated 10 August 2026</p>
 
   <h2>Your photographs</h2>
   <p>
@@ -95,21 +95,50 @@ main { padding-block: clamp(40px, 7vw, 72px) 60px; }
     <li>the photograph itself, and any reference image you attach</li>
   </ul>
   <p>
-    Luminara's server records that a turn happened, which tier it used and how
-    many tokens it cost, so allowances can be counted. It does not store the
-    contents of your conversations or your photographs.
+    Luminara's server does not store the contents of your conversations or your
+    photographs. It records one row per turn, so your weekly allowance can be
+    counted and so failures can be told apart from successes:
+  </p>
+  <ul>
+    <li>which tier answered, and which week it belongs to</li>
+    <li>whether the turn succeeded, failed, or is still running</li>
+    <li>how many tokens went up and came back</li>
+    <li>how long the model service took, and the status it returned</li>
+    <li>when the turn started and finished</li>
+  </ul>
+  <p>
+    None of that includes what you typed or what was in the picture.
   </p>
 
   <h2>Your account</h2>
   <p>
     Signing in stores your email address, or the identifier Apple gives us if
-    you use Sign in with Apple. Sign-in codes are sent by email and expire after
-    ten minutes.
+    you use Sign in with Apple, along with a note of whether the address is one
+    of Apple's forwarding addresses. Sign-in codes are sent by email and expire
+    after ten minutes.
+  </p>
+  <p>
+    Alongside it we keep which plan you hold, when it expires, and the
+    identifiers from the App Store receipt that prove it. Sign-in codes and
+    session tokens are never stored as themselves, only as their SHA-256, so a
+    copy of the database is a list of who has an account rather than a way to be
+    any of them.
   </p>
   <p>
     Subscriptions are handled by the App Store. Luminara receives the receipt
     Apple signs, which says which subscription you hold and when it expires. We
     never see your payment details.
+  </p>
+
+  <h2>How long it is kept</h2>
+  <ul>
+    <li>Sign-in codes: deleted an hour after they expire, or as soon as they are used.</li>
+    <li>Rate-limit counters: deleted after a day.</li>
+    <li>Session tokens: until you sign out or delete the account.</li>
+    <li>Your account and its usage rows: until you delete the account.</li>
+  </ul>
+  <p>
+    Deleting the account removes all of it in one step, including every usage row.
   </p>
 
   <h2>What we do not do</h2>
@@ -121,9 +150,13 @@ main { padding-block: clamp(40px, 7vw, 72px) 60px; }
 
   <h2>Deleting your account</h2>
   <p>
-    Write to <a href="mailto:luminara.feedback@hotmail.com">luminara.feedback@hotmail.com</a>
-    and your account and its usage records are removed. Projects and looks live
-    on your Mac and are yours to delete.
+    In the app: Settings, then Account, then Delete account. It takes effect at once.
+    Your address, your sign-in tokens and every usage record go with it.
+  </p>
+  <p>
+    Or write to <a href="mailto:luminara.feedback@hotmail.com">luminara.feedback@hotmail.com</a>
+    and ask. Projects and looks live on your Mac and are yours to delete. An App Store
+    subscription is not cancelled by deleting the account; cancel it in App Store settings.
   </p>
 
   <h2>Changes</h2>
